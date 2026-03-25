@@ -2,6 +2,15 @@ const listEl = document.getElementById("pokemon-list");
 const statusEl = document.getElementById("status");
 const reloadBtn = document.getElementById("reload-btn");
 
+function extractIdFromUrl(url) {
+  const match = url.match(/\/pokemon\/(\d+)\/?$/);
+  return match ? Number(match[1]) : null;
+}
+
+function buildIconUrl(id) {
+  return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+}
+
 async function loadPokemon() {
   if (!listEl || !statusEl) {
     return;
@@ -19,18 +28,32 @@ async function loadPokemon() {
     const data = await response.json();
     const items = data.results ?? [];
 
-    items.forEach((pokemon, index) => {
-      const id = index + 1;
+    items.forEach((pokemon) => {
+      const id = extractIdFromUrl(pokemon.url);
       const col = document.createElement("div");
       col.className = "col-12 col-sm-6 col-lg-4";
+      const iconUrl = id ? buildIconUrl(id) : "";
+      const link = `pokemon-detail.html?name=${encodeURIComponent(pokemon.name)}`;
 
       col.innerHTML = `
-        <div class="card h-100">
-          <div class="card-body">
-            <h3 class="h6 card-title mb-1">#${id} ${pokemon.name}</h3>
-            <p class="card-text text-body-secondary mb-0">${pokemon.url}</p>
+        <a href="${link}" class="text-decoration-none text-body">
+          <div class="card h-100 shadow-sm">
+            <div class="card-body d-flex align-items-center gap-3">
+              <img
+                src="${iconUrl}"
+                alt="${pokemon.name} icon"
+                width="56"
+                height="56"
+                class="rounded bg-light border"
+                loading="lazy"
+              />
+              <div>
+                <h3 class="h6 card-title mb-1 text-capitalize">#${id ?? "-"} ${pokemon.name}</h3>
+                <p class="card-text text-body-secondary mb-0">クリックで詳細へ</p>
+              </div>
+            </div>
           </div>
-        </div>
+        </a>
       `;
 
       listEl.appendChild(col);
